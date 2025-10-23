@@ -1,11 +1,31 @@
 # Core dependencies
+
 streamlit
 openai
-pypdf2
+pdfplumber
+
 
 # Testing
 pytest
 pytest-cov
+
+
+# Linting and formatting
+black
+flake8
+pylint
+
+# Type checking
+mypy
+
+# Data manipulation
+pandas
+
+# Logging
+loguru
+
+# HTTP requests
+requests
 
 # Development
 python-dotenv
