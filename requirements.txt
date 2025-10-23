@@ -1,0 +1,11 @@
+# Core dependencies
+streamlit
+openai
+pypdf2
+
+# Testing
+pytest
+pytest-cov
+
+# Development
+python-dotenv
