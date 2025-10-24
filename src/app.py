@@ -20,13 +20,10 @@ load_dotenv()
 # Inject custom CSS for sitewide styles
 st.markdown(f"""
     <style>
-        body {{
+        body, .stApp {{
             background-color: {STYLE['background_color']};
             color: {STYLE['text_color']};
             font-family: {STYLE['body_font']};
-        }}
-        .stApp {{
-            background-color: {STYLE['background_color']};
         }}
         h1, h2, h3, h4, h5, h6 {{
             font-family: {STYLE['header_font']};
@@ -34,11 +31,16 @@ st.markdown(f"""
         }}
         .stTextArea textarea {{
             background-color: {STYLE['secondary_color']};
-            color: {STYLE['text_color']};
+            color: {STYLE['primary_color']}; /* Navy text for contrast */
+            font-size: 1rem;
         }}
         .stButton>button {{
             background-color: {STYLE['primary_color']};
-            color: white;
+            color: #fff;
+            font-weight: bold;
+        }}
+        .stMarkdown, .stSubheader {{
+            color: {STYLE['text_color']};
         }}
     </style>
 """, unsafe_allow_html=True)
