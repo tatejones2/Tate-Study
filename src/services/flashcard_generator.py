@@ -1,3 +1,4 @@
+
 import openai
 import os
 from dotenv import load_dotenv
@@ -5,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-openai.api_key = OPENAI_API_KEY
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 def generate_flashcards(text):
     """
@@ -17,7 +18,7 @@ def generate_flashcards(text):
         "Return a JSON list of objects with 'question' and 'answer' keys.\nText:\n" + text
     )
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=512,
@@ -25,7 +26,7 @@ def generate_flashcards(text):
         )
         import json
         # Extract JSON from response
-        content = response.choices[0].message["content"]
+        content = response.choices[0].message.content
         flashcards = json.loads(content)
         return flashcards
     except Exception as e:
