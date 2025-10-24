@@ -8,11 +8,40 @@ def handle_pdf_upload(uploaded_file):
         extracted_text = extract_text_from_pdf(temp_path)
         return extracted_text
     return None
+
 import streamlit as st
 import os
 from dotenv import load_dotenv
+from config.style_config import STYLE
+
 
 load_dotenv()
+
+# Inject custom CSS for sitewide styles
+st.markdown(f"""
+    <style>
+        body {{
+            background-color: {STYLE['background_color']};
+            color: {STYLE['text_color']};
+            font-family: {STYLE['body_font']};
+        }}
+        .stApp {{
+            background-color: {STYLE['background_color']};
+        }}
+        h1, h2, h3, h4, h5, h6 {{
+            font-family: {STYLE['header_font']};
+            color: {STYLE['primary_color']};
+        }}
+        .stTextArea textarea {{
+            background-color: {STYLE['secondary_color']};
+            color: {STYLE['text_color']};
+        }}
+        .stButton>button {{
+            background-color: {STYLE['primary_color']};
+            color: white;
+        }}
+    </style>
+""", unsafe_allow_html=True)
 
 st.title("TateStudy")
 st.write("Welcome to your AI-powered study tool!")
@@ -24,6 +53,7 @@ else:
     st.error("OpenAI API key not found. Please check your .env file.")
 
 from services.pdf_parser import extract_text_from_pdf
+from services.flashcard_generator import generate_flashcards
 
 # PDF upload and extraction
 
@@ -32,3 +62,11 @@ extracted_text = handle_pdf_upload(uploaded_file)
 if extracted_text is not None:
     st.subheader("Extracted Text from PDF:")
     st.text_area("PDF Content", extracted_text, height=300)
+
+    # Generate flashcards from extracted text
+    if st.button("Generate Flashcards"):
+        with st.spinner("Generating flashcards..."):
+            flashcards = generate_flashcards(extracted_text)
+        st.subheader("Generated Flashcards:")
+        for card in flashcards:
+            st.markdown(f"**Q:** {card['question']}  \n**A:** {card['answer']}")
