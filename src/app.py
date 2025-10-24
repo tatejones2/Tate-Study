@@ -49,11 +49,24 @@ st.markdown(f"""
 
 # Multipage navigation
 
-# Set Upload as default page
-page = st.sidebar.radio(
-    "Navigate",
-    ("Upload & Flashcards", "Projects")
-)
+
+
+# Sidebar navigation with sub-menu for Projects (remove Upload & Flashcards)
+main_pages = ["Projects", "New Project"]
+sidebar_selection = st.sidebar.radio("Navigate", main_pages, index=0)
+
+# Show recent projects in sidebar if Projects selected
+recent_projects = list(st.session_state["projects"].keys())[-10:][::-1]
+selected_project = None
+if sidebar_selection == "Projects":
+    st.sidebar.subheader("Recent Projects")
+    for proj in recent_projects:
+        if st.sidebar.button(proj, key=f"sidebar_proj_{proj}"):
+            st.session_state["current_project"] = proj
+            selected_project = proj
+    if st.sidebar.button("New Project", key="sidebar_new_proj"):
+        st.session_state["current_project"] = None
+        sidebar_selection = "New Project"
 
 if "projects" not in st.session_state:
     st.session_state["projects"] = {}
@@ -69,51 +82,40 @@ else:
 from services.pdf_parser import extract_text_from_pdf
 from services.flashcard_generator import generate_flashcards
 
-if page == "Projects":
+if sidebar_selection == "Projects":
     st.title("Projects")
-    st.markdown("Manage your study projects. Each project can have its own notes and flashcards.")
-    project_names = list(st.session_state["projects"].keys())
-    selected = st.selectbox("Select a project", ["(None)"] + project_names)
-    if selected != "(None)":
-        st.session_state["current_project"] = selected
+    st.markdown("Select a recent project from the sidebar to view its study tools.")
+    if st.session_state.get("current_project"):
+        selected = st.session_state["current_project"]
         st.write(f"**Selected Project:** {selected}")
         project = st.session_state["projects"][selected]
+        tabs = st.tabs(["Flashcards", "Quiz", "Analytics"])
+        with tabs[0]:
+            st.subheader("Flashcards")
+            for card in project.get("flashcards", []):
+                st.markdown(f"**Q:** {card['question']}  \n**A:** {card['answer']}")
+        with tabs[1]:
+            st.subheader("Quiz")
+            st.info("Quiz feature coming soon!")
+        with tabs[2]:
+            st.subheader("Analytics")
+            st.info("Analytics feature coming soon!")
         st.write("**Notes:**")
         st.text_area("Notes", project.get("notes", ""), height=150)
-        st.write("**Flashcards:**")
-        for card in project.get("flashcards", []):
-            st.markdown(f"**Q:** {card['question']}  \n**A:** {card['answer']}")
-    st.markdown("---")
-    new_name = st.text_input("Create a new project", "")
+    else:
+        st.info("No project selected. Choose one from the sidebar.")
+
+elif sidebar_selection == "New Project":
+    st.title("Create a New Project")
+    st.markdown("Enter a name for your new project.")
+    new_name = st.text_input("Project name", "")
     if st.button("Add Project") and new_name:
         if new_name not in st.session_state["projects"]:
             st.session_state["projects"][new_name] = {"notes": "", "flashcards": []}
             st.success(f"Project '{new_name}' created!")
+            st.session_state["current_project"] = new_name
+            st.rerun()
         else:
             st.warning("Project name already exists.")
 
-elif page == "Upload & Flashcards":
-    st.title("Upload Notes & Generate Flashcards")
-    st.markdown("Upload your class notes as a PDF, extract the text, and generate flashcards.")
-    uploaded_file = st.file_uploader("Upload your class notes (PDF)", type=["pdf"])
-    extracted_text = handle_pdf_upload(uploaded_file)
-    if extracted_text is not None:
-        col1, col2 = st.columns([2, 3])
-        with col1:
-            st.subheader("Extracted Text from PDF:")
-            st.text_area("PDF Content", extracted_text, height=300)
-        with col2:
-            st.subheader("Flashcards")
-            if st.button("Generate Flashcards"):
-                with st.spinner("Generating flashcards..."):
-                    flashcards = generate_flashcards(extracted_text)
-                for card in flashcards:
-                    st.markdown(f"**Q:** {card['question']}  \n**A:** {card['answer']}")
-                # Prompt for project name and save
-                new_proj_name = st.text_input("Save this session as a new project. Enter project name:", "")
-                if st.button("Save Project") and new_proj_name:
-                    if new_proj_name not in st.session_state["projects"]:
-                        st.session_state["projects"][new_proj_name] = {"notes": extracted_text, "flashcards": flashcards}
-                        st.success(f"Project '{new_proj_name}' saved!")
-                    else:
-                        st.warning("Project name already exists.")
+
