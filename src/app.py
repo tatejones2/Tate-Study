@@ -1,3 +1,13 @@
+# Helper function for PDF upload and extraction
+def handle_pdf_upload(uploaded_file):
+    if uploaded_file is not None:
+        temp_path = "temp_uploaded.pdf"
+        with open(temp_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        from services.pdf_parser import extract_text_from_pdf
+        extracted_text = extract_text_from_pdf(temp_path)
+        return extracted_text
+    return None
 import streamlit as st
 import os
 from dotenv import load_dotenv
@@ -13,13 +23,12 @@ if openai_key:
 else:
     st.error("OpenAI API key not found. Please check your .env file.")
 
-from pdf_parser import extract_text_from_pdf
+from services.pdf_parser import extract_text_from_pdf
 
 # PDF upload and extraction
+
 uploaded_file = st.file_uploader("Upload your class notes (PDF)", type=["pdf"])
-if uploaded_file is not None:
-    with open("temp_uploaded.pdf", "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    extracted_text = extract_text_from_pdf("temp_uploaded.pdf")
+extracted_text = handle_pdf_upload(uploaded_file)
+if extracted_text is not None:
     st.subheader("Extracted Text from PDF:")
     st.text_area("PDF Content", extracted_text, height=300)
