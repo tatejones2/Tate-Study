@@ -53,16 +53,37 @@ st.markdown(f"""
 
 
 # Ensure session state keys are initialized
+
+
+
+
+
+# Sidebar navigation as clickable markdown links styled as a menu (Projects only)
+main_pages = ["Projects"]
+if "sidebar_selection" not in st.session_state:
+    st.session_state["sidebar_selection"] = "Projects"
+sidebar_selection = st.session_state["sidebar_selection"]
+sidebar_menu = "<h4 style='margin-bottom: 1rem;'>Navigate</h4>"
+for page in main_pages:
+    active_style = "background-color: #e3e8f0; color: #003366; border-radius: 6px; padding: 10px 12px; font-size: 1.15rem; font-weight: 700;" if sidebar_selection == page else "padding: 10px 12px; color: #003366; border-radius: 6px; font-size: 1.12rem; font-weight: 600;"
+    sidebar_menu += f"<div style='{active_style}'><a href='#{page.replace(' ', '-')}' style='text-decoration:none;color:inherit;'>{page}</a></div>"
+st.sidebar.markdown(sidebar_menu, unsafe_allow_html=True)
+
+# Handle navigation by hash (simulate page switch)
+import streamlit.components.v1 as components
+nav_hash = st.experimental_get_query_params().get("nav", [sidebar_selection])[0]
+if nav_hash.replace('-', ' ') in main_pages and nav_hash.replace('-', ' ') != sidebar_selection:
+    st.session_state["sidebar_selection"] = nav_hash.replace('-', ' ')
+    sidebar_selection = st.session_state["sidebar_selection"]
+
+# Show recent projects in sidebar if Projects selected
+
+# Ensure session state keys before sidebar usage
 if "projects" not in st.session_state:
     st.session_state["projects"] = {}
 if "current_project" not in st.session_state:
     st.session_state["current_project"] = None
 
-# Sidebar navigation with sub-menu for Projects (remove Upload & Flashcards)
-main_pages = ["Projects", "New Project"]
-sidebar_selection = st.sidebar.radio("Navigate", main_pages, index=0)
-
-# Show recent projects in sidebar if Projects selected
 recent_projects = list(st.session_state["projects"].keys())[-10:][::-1]
 selected_project = None
 if sidebar_selection == "Projects":
@@ -73,7 +94,7 @@ if sidebar_selection == "Projects":
             selected_project = proj
     if st.sidebar.button("New Project", key="sidebar_new_proj"):
         st.session_state["current_project"] = None
-        sidebar_selection = "New Project"
+        st.session_state["sidebar_selection"] = "New Project"
 
 if "projects" not in st.session_state:
     st.session_state["projects"] = {}
@@ -121,6 +142,7 @@ elif sidebar_selection == "New Project":
             st.session_state["projects"][new_name] = {"notes": "", "flashcards": []}
             st.success(f"Project '{new_name}' created!")
             st.session_state["current_project"] = new_name
+            st.session_state["sidebar_selection"] = "Projects"
             st.rerun()
         else:
             st.warning("Project name already exists.")
