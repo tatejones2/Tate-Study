@@ -27,5 +27,7 @@ loguru
 # HTTP requests
 requests
 
+
 # Development
 python-dotenv
+fpdf
