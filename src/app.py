@@ -51,6 +51,13 @@ st.markdown(f"""
 
 
 
+
+# Ensure session state keys are initialized
+if "projects" not in st.session_state:
+    st.session_state["projects"] = {}
+if "current_project" not in st.session_state:
+    st.session_state["current_project"] = None
+
 # Sidebar navigation with sub-menu for Projects (remove Upload & Flashcards)
 main_pages = ["Projects", "New Project"]
 sidebar_selection = st.sidebar.radio("Navigate", main_pages, index=0)
